@@ -1,16 +1,14 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 
 	"hbgaldino/golang-api/entity"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
-
-var books = []entity.Book{
-	{ID: 1, Title: "Name", Description: "Description"},
-}
 
 type BookController interface {
 	All(context *gin.Context)
@@ -21,12 +19,18 @@ type BookController interface {
 	// Delete(context *gin.Context)
 }
 
-type bookController struct{}
+type bookController struct {
+	connection *gorm.DB
+}
 
-func NewBookController() BookController {
-	return &bookController{}
+func NewBookController(conn *gorm.DB) BookController {
+	return &bookController{
+		connection: conn,
+	}
 }
 func (c *bookController) All(context *gin.Context) {
+	var books []entity.Book
+	c.connection.Find(&books)
 	context.JSON(http.StatusOK, books)
 }
 
@@ -39,6 +43,8 @@ func (c *bookController) Create(context *gin.Context) {
 		return
 	}
 
-	books = append(books, bookRequest)
+	result := c.connection.Create(&bookRequest)
+
+	fmt.Println("Rows Affected", result.RowsAffected)
 	context.JSON(http.StatusCreated, "created")
 }
