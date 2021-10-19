@@ -20,6 +20,8 @@ func main() {
 	router := gin.Default()
 	router.GET("/book", bookController.All)
 	router.GET("/book/:id", bookController.FindById)
-	router.POST("book", bookController.Create)
+	router.POST("/book", bookController.Create)
+	router.DELETE("/book/:id", bookController.Delete)
+	router.PUT("/book/:id", bookController.Update)
 	router.Run()
 }
