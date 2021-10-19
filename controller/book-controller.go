@@ -1,18 +1,18 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
+	"strconv"
 
 	"hbgaldino/golang-api/entity"
+	"hbgaldino/golang-api/repository"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type BookController interface {
 	All(context *gin.Context)
-	// FindById(context *gin.Context)
+	FindById(context *gin.Context)
 	Create(context *gin.Context)
 	// Insert(context *gin.Context)
 	// Update(context *gin.Context)
@@ -20,17 +20,16 @@ type BookController interface {
 }
 
 type bookController struct {
-	connection *gorm.DB
+	bookRepository repository.BookRepository
 }
 
-func NewBookController(conn *gorm.DB) BookController {
+func NewBookController(repository repository.BookRepository) BookController {
 	return &bookController{
-		connection: conn,
+		bookRepository: repository,
 	}
 }
 func (c *bookController) All(context *gin.Context) {
-	var books []entity.Book
-	c.connection.Find(&books)
+	books := c.bookRepository.AllBook()
 	context.JSON(http.StatusOK, books)
 }
 
@@ -43,8 +42,12 @@ func (c *bookController) Create(context *gin.Context) {
 		return
 	}
 
-	result := c.connection.Create(&bookRequest)
+	result := c.bookRepository.InsertBook(bookRequest)
+	context.JSON(http.StatusCreated, result)
+}
 
-	fmt.Println("Rows Affected", result.RowsAffected)
-	context.JSON(http.StatusCreated, "created")
+func (c *bookController) FindById(context *gin.Context) {
+	id, _ := strconv.ParseUint(context.Param("id"), 10, 64)
+	book := c.bookRepository.FindBookById(id)
+	context.JSON(http.StatusOK, book)
 }
